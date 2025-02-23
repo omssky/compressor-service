@@ -3,7 +3,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace CompressorService.Api;
 
-public abstract class SwaggerFileOperationFilter : IOperationFilter
+public class SwaggerFileOperationFilter : IOperationFilter
 {
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
