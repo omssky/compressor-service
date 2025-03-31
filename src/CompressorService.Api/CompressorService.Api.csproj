@@ -7,9 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.70.0" />
+    <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.70.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.71.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.4.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\ImageProcessingService.proto" GrpcServices="Server" />
   </ItemGroup>
 
 </Project>

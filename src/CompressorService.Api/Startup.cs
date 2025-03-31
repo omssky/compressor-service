@@ -1,4 +1,5 @@
-﻿using CompressorService.Api.Services;
+﻿using CompressorService.Api.Grpc;
+using CompressorService.Api.Services;
 using CompressorService.Api.Services.Interfaces;
 using Microsoft.OpenApi.Models;
 
@@ -8,7 +9,12 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddTransient<IImageProcessorMagick, ImageProcessorMagick>();
+        services.AddTransient<IImageProcessorImageSharp, ImageProcessorImageSharp>();
+        
         services.AddControllers();
+        services.AddGrpc();
+        services.AddGrpcReflection();
         
         services.AddSwaggerGen(c =>
         {
@@ -20,22 +26,19 @@ public class Startup
             });
             c.OperationFilter<SwaggerFileOperationFilter>();
         });
-        
-        services.AddTransient<IImageProcessorMagick, ImageProcessorMagick>();
-        services.AddTransient<IImageProcessorImageSharp, ImageProcessorImageSharp>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
         if (env.IsDevelopment())
         {
-            app.UseDeveloperExceptionPage();
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "CompressorService API v1");
-                c.RoutePrefix = string.Empty;
+                c.RoutePrefix = "swagger";
             });
+            
         }
 
         app.UseRouting();
@@ -43,6 +46,11 @@ public class Startup
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
+            endpoints.MapGrpcService<ImageProcessingService>();
+            if (env.IsDevelopment())
+            {
+                endpoints.MapGrpcReflectionService();
+            }
         });
     }
 }

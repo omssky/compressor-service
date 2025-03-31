@@ -1,0 +1,26 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "CompressorService.Api.Protos";
+
+service ImageProcessingService {
+  rpc OptimizeImage (ImageRequest) returns (ImageResponse);
+  rpc CompressImage (CompressRequest) returns (ImageResponse);
+}
+
+message ImageRequest {
+  bytes imageData = 1;
+  string fileName = 2;
+}
+
+message CompressRequest {
+  bytes imageData = 1;
+  string fileName = 2;
+  int32 quality = 3;
+  int32 width = 4;
+  int32 height = 5;
+}
+
+message ImageResponse {
+  bytes imageData = 1;
+  string fileName = 2;
+}
