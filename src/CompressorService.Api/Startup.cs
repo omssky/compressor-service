@@ -11,10 +11,12 @@ public class Startup
     {
         services.AddTransient<IImageProcessorImageSharp, ImageProcessorImageSharp>();
         
-        services.AddControllers();
-        services.AddGrpc();
+        services
+            .AddGrpc()
+            .AddJsonTranscoding();
         services.AddGrpcReflection();
-        
+
+        services.AddGrpcSwagger();
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo 
@@ -23,7 +25,6 @@ public class Startup
                 Version = "v1",
                 Description = "API для обработки изображений"
             });
-            c.OperationFilter<SwaggerFileOperationFilter>();
         });
     }
 
@@ -37,14 +38,10 @@ public class Startup
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "CompressorService API v1");
                 c.RoutePrefix = "swagger";
             });
-            
         }
-
         app.UseRouting();
-
         app.UseEndpoints(endpoints =>
         {
-            endpoints.MapControllers();
             endpoints.MapGrpcService<ImageProcessingService>();
             if (env.IsDevelopment())
             {

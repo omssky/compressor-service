@@ -1,23 +1,56 @@
 ﻿syntax = "proto3";
 
+package compressor_service;
+
+import "google/api/annotations.proto";
+
 option csharp_namespace = "CompressorService.Api.Protos";
 
 service ImageProcessingService {
-  rpc OptimizeImage (OptimizeImageRequest) returns (ProcessedImageResponse);
-  rpc CompressImage (CompressImageRequest) returns (ProcessedImageResponse);
-  rpc CreateThumbnail (CreateThumbnailRequest) returns (ProcessedImageResponse);
-  
-  rpc OptimizeBatch (BatchOptimizeImageRequest) returns (BatchProcessedImageResponse);
-  rpc CompressBatch (BatchCompressImageRequest) returns (BatchProcessedImageResponse);
-  rpc CreateThumbnailBatch (BatchThumbnailRequest) returns (BatchProcessedImageResponse);
+  rpc OptimizeImage (OptimizeImageRequest) returns (ProcessedImageResponse) {
+    option (google.api.http) = {
+      post: "/v1/images/optimize"
+      body: "*"
+    };
+  }
+  rpc CompressImage (CompressImageRequest) returns (ProcessedImageResponse) {
+    option (google.api.http) = {
+      post: "/v1/images/compress"
+      body: "*"
+    };
+  }
+  rpc CreateThumbnail (CreateThumbnailRequest) returns (ProcessedImageResponse) {
+    option (google.api.http) = {
+      post: "/v1/images/thumbnail"
+      body: "*"
+    };
+  }
+  rpc OptimizeBatch (BatchOptimizeImageRequest) returns (BatchProcessedImageResponse) {
+    option (google.api.http) = {
+      post: "/v1/images/optimize/batch"
+      body: "*"
+    };
+  }
+  rpc CompressBatch (BatchCompressImageRequest) returns (BatchProcessedImageResponse) {
+    option (google.api.http) = {
+      post: "/v1/images/compress/batch"
+      body: "*"
+    };
+  }
+  rpc CreateThumbnailBatch (BatchThumbnailRequest) returns (BatchProcessedImageResponse) {
+    option (google.api.http) = {
+      post: "/v1/images/thumbnail/batch"
+      body: "*"
+    };
+  }
 }
 
-// Inner
 enum FileType {
-  TYPE_PNG = 0;
-  TYPE_JPG = 1;
-  TYPE_JPEG = 2;
-  TYPE_WEBP = 3;
+  TYPE_UNSPECIFIED = 0;
+  TYPE_PNG = 1;
+  TYPE_JPG = 2;
+  TYPE_JPEG = 3;
+  TYPE_WEBP = 4;
 }
 
 message Image {
