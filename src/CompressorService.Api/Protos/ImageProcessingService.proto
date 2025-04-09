@@ -3,24 +3,65 @@
 option csharp_namespace = "CompressorService.Api.Protos";
 
 service ImageProcessingService {
-  rpc OptimizeImage (ImageRequest) returns (ImageResponse);
-  rpc CompressImage (CompressRequest) returns (ImageResponse);
+  rpc OptimizeImage (OptimizeImageRequest) returns (ProcessedImageResponse);
+  rpc CompressImage (CompressImageRequest) returns (ProcessedImageResponse);
+  rpc CreateThumbnail (CreateThumbnailRequest) returns (ProcessedImageResponse);
+  
+  rpc OptimizeBatch (BatchOptimizeImageRequest) returns (BatchProcessedImageResponse);
+  rpc CompressBatch (BatchCompressImageRequest) returns (BatchProcessedImageResponse);
+  rpc CreateThumbnailBatch (BatchThumbnailRequest) returns (BatchProcessedImageResponse);
 }
 
-message ImageRequest {
-  bytes imageData = 1;
-  string fileName = 2;
+// Inner
+enum FileType {
+  TYPE_PNG = 0;
+  TYPE_JPG = 1;
+  TYPE_JPEG = 2;
+  TYPE_WEBP = 3;
 }
 
-message CompressRequest {
-  bytes imageData = 1;
-  string fileName = 2;
-  int32 quality = 3;
-  int32 width = 4;
-  int32 height = 5;
+message Image {
+  bytes image_data = 1;
+  FileType type = 2;
 }
 
-message ImageResponse {
-  bytes imageData = 1;
-  string fileName = 2;
+message CompressParams {
+  int32 quality = 1;
+  int32 width = 2;
+  int32 height = 3;
+}
+
+// Single
+message OptimizeImageRequest {
+  Image image = 1;
+}
+
+message CompressImageRequest {
+  Image image = 1;
+  CompressParams params = 2;
+}
+
+message CreateThumbnailRequest {
+  Image image = 1;
+}
+
+message ProcessedImageResponse {
+  Image image = 1;
+}
+
+// Batch
+message BatchOptimizeImageRequest {
+  repeated Image images = 1;
+}
+
+message BatchCompressImageRequest {
+  repeated CompressImageRequest items = 1;
+}
+
+message BatchThumbnailRequest {
+  repeated Image images = 1;
+}
+
+message BatchProcessedImageResponse {
+  repeated Image images = 1;
 }
