@@ -7,12 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace CompressorService.Api.Grpc;
 
 [ApiExplorerSettings(GroupName = "grpc")]
-public class ImageProcessingService(IImageProcessorImageSharp imageProcessor) 
+public class ImageProcessingService(IWebpImageProcessor webpImageProcessor) 
     : Protos.ImageProcessingService.ImageProcessingServiceBase
 {
     public override async Task<ProcessedImageResponse> OptimizeImage(OptimizeImageRequest request, ServerCallContext context)
     {
-        var resultBytes = await imageProcessor.OptimizeAsync(request.Image.ImageData.ToByteArray());
+        var resultBytes = await webpImageProcessor.OptimizeAsync(request.Image.ImageData.ToByteArray());
 
         return new ProcessedImageResponse
         {
@@ -26,7 +26,7 @@ public class ImageProcessingService(IImageProcessorImageSharp imageProcessor)
 
     public override async Task<ProcessedImageResponse> CompressImage(CompressImageRequest request, ServerCallContext context)
     {
-        var resultBytes = await imageProcessor.CompressAsync(
+        var resultBytes = await webpImageProcessor.CompressAsync(
             request.Image.ImageData.ToByteArray(),
             request.Params.Quality,
             request.Params.Width,
@@ -45,7 +45,7 @@ public class ImageProcessingService(IImageProcessorImageSharp imageProcessor)
 
     public override async Task<ProcessedImageResponse> CreateThumbnail(CreateThumbnailRequest request, ServerCallContext context)
     {
-        var result = await imageProcessor.CreateThumbnailAsync(request.Image.ImageData.ToByteArray());
+        var result = await webpImageProcessor.CreateThumbnailAsync(request.Image.ImageData.ToByteArray());
 
         return new ProcessedImageResponse
         {
@@ -60,7 +60,7 @@ public class ImageProcessingService(IImageProcessorImageSharp imageProcessor)
     public override async Task<BatchProcessedImageResponse> OptimizeBatch(BatchOptimizeImageRequest request, ServerCallContext context)
     {
         var imageBytes = request.Images.Select(i => i.ImageData.ToByteArray());
-        var results = await imageProcessor.OptimizeBatchAsync(imageBytes);
+        var results = await webpImageProcessor.OptimizeBatchAsync(imageBytes);
 
         var response = new BatchProcessedImageResponse();
         response.Images.AddRange(results.Select(r => new Image
@@ -81,7 +81,7 @@ public class ImageProcessingService(IImageProcessorImageSharp imageProcessor)
             Height: i.Params.Height
         ));
 
-        var results = await imageProcessor.CompressBatchAsync(imagesWithParams);
+        var results = await webpImageProcessor.CompressBatchAsync(imagesWithParams);
 
         var response = new BatchProcessedImageResponse();
         response.Images.AddRange(results.Select(r => new Image
@@ -97,7 +97,7 @@ public class ImageProcessingService(IImageProcessorImageSharp imageProcessor)
     public override async Task<BatchProcessedImageResponse> CreateThumbnailBatch(BatchThumbnailRequest request, ServerCallContext context)
     {
         var imageBytes = request.Images.Select(i => i.ImageData.ToByteArray());
-        var results = await imageProcessor.CreateThumbnailBatchAsync(imageBytes);
+        var results = await webpImageProcessor.CreateThumbnailBatchAsync(imageBytes);
 
         var response = new BatchProcessedImageResponse();
         response.Images.AddRange(results.Select(r => new Image

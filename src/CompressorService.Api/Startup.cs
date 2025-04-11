@@ -1,15 +1,19 @@
 ﻿using CompressorService.Api.Grpc;
+using CompressorService.Api.Options;
 using CompressorService.Api.Services;
 using CompressorService.Api.Services.Interfaces;
 using Microsoft.OpenApi.Models;
+using SixLabors.ImageSharp;
 
 namespace CompressorService.Api;
 
-public class Startup
+public class Startup(IConfiguration configuration)
 {
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddTransient<IImageProcessorImageSharp, ImageProcessorImageSharp>();
+        services.Configure<WebpEncoderOptions>(configuration.GetSection(nameof(WebpEncoderOptions)));
+        
+        services.AddTransient<IWebpImageProcessor, WebpImageProcessor>();
 
         services
             .AddGrpc()

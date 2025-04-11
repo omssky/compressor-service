@@ -6,7 +6,7 @@ namespace CompressorService.Api.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
 [ApiExplorerSettings(GroupName = "http")]
-public class ImageProcessingController(IImageProcessorImageSharp processor) : ControllerBase
+public class ImageProcessingController(IWebpImageProcessor processor) : ControllerBase
 {
     [HttpPost("optimize")]
     [Consumes("multipart/form-data")]

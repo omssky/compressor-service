@@ -1,27 +1,44 @@
-﻿using CompressorService.Api.Services.Interfaces;
+﻿using CompressorService.Api.Extensions;
+using CompressorService.Api.Options;
+using CompressorService.Api.Services.Interfaces;
+using Microsoft.Extensions.Options;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing;
-using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
 namespace CompressorService.Api.Services;
 
-public class ImageProcessorImageSharp : IImageProcessorImageSharp
+public class WebpImageProcessor(IOptionsMonitor<WebpEncoderOptions> encoderOptions) : IWebpImageProcessor
 {
+    private WebpEncoder CreateEncoder(int? overrideQuality = null)
+    {
+        var opt = encoderOptions.CurrentValue;
+        return new WebpEncoder
+        {
+            SkipMetadata = opt.SkipMetadata,
+            FileFormat = opt.FileFormat,
+            Quality = overrideQuality ?? opt.Quality,
+            Method = opt.Method,
+            UseAlphaCompression = opt.UseAlphaCompression,
+            EntropyPasses = opt.EntropyPasses,
+            SpatialNoiseShaping = opt.SpatialNoiseShaping,
+            FilterStrength = opt.FilterStrength,
+            TransparentColorMode = opt.TransparentColorMode,
+            NearLossless = opt.NearLossless,
+            NearLosslessQuality = opt.NearLosslessQuality,
+        };
+    }
+
     public async Task<byte[]> OptimizeAsync(byte[] imageData)
     {
         using var input = new MemoryStream(imageData);
         using var image = await Image.LoadAsync<Rgba32>(input);
 
         using var output = new MemoryStream();
-        var encoder = new WebpEncoder
-        {
-            Quality = 84,
-            Method = WebpEncodingMethod.Level4
-        };
-        await image.SaveAsWebpAsync(output, encoder);
+        await image.SaveAsWebpAsync(output, CreateEncoder(84));
+
         return output.ToArray();
     }
 
@@ -40,12 +57,8 @@ public class ImageProcessorImageSharp : IImageProcessorImageSharp
         }
 
         using var output = new MemoryStream();
-        var encoder = new WebpEncoder
-        {
-            Quality = quality,
-            Method = WebpEncodingMethod.Level4
-        };
-        await image.SaveAsWebpAsync(output, encoder);
+        await image.SaveAsWebpAsync(output, CreateEncoder(quality));
+
         return output.ToArray();
     }
 
@@ -63,31 +76,13 @@ public class ImageProcessorImageSharp : IImageProcessorImageSharp
 
         var mask = new EllipsePolygon(200, 200, 200);
 
-        image.Mutate(ctx =>
-        {
-            ctx.Crop(cropRectangle)
-                .Resize(new ResizeOptions
-                {
-                    Size = new Size(400, 400),
-                    Mode = ResizeMode.Crop,
-                    Sampler = KnownResamplers.Lanczos3
-                });
-
-            ctx.SetGraphicsOptions(new GraphicsOptions
-            {
-                Antialias = true,
-                AlphaCompositionMode = PixelAlphaCompositionMode.DestIn
-            });
-            ctx.Fill(Color.White, mask);
-        });
+        image.Mutate(ctx => ctx
+            .CropToThumbnail(cropRectangle)
+            .ApplyRoundedCorners(mask)
+        );
 
         using var output = new MemoryStream();
-        var encoder = new WebpEncoder
-        {
-            Quality = 80,
-            Method = WebpEncodingMethod.Level4
-        };
-        await image.SaveAsWebpAsync(output, encoder);
+        await image.SaveAsWebpAsync(output, CreateEncoder(84));
 
         return output.ToArray();
     }
@@ -100,11 +95,7 @@ public class ImageProcessorImageSharp : IImageProcessorImageSharp
             using var image = await Image.LoadAsync<Rgba32>(input);
 
             using var output = new MemoryStream();
-            await image.SaveAsWebpAsync(output, new WebpEncoder
-            {
-                Quality = 84,
-                Method = WebpEncodingMethod.Level4
-            });
+            await image.SaveAsWebpAsync(output, CreateEncoder(84));
 
             return output.ToArray();
         });
@@ -122,29 +113,21 @@ public class ImageProcessorImageSharp : IImageProcessorImageSharp
 
             if (item is { Width: > 0, Height: > 0 })
             {
-                image.Mutate(ctx =>
+                image.Mutate(ctx => ctx.Resize(new ResizeOptions
                 {
-                    ctx.Resize(new ResizeOptions
-                    {
-                        Size = new Size(item.Width, item.Height),
-                        Mode = ResizeMode.Max
-                    });
-                });
+                    Size = new Size(item.Width, item.Height),
+                    Mode = ResizeMode.Max
+                }));
             }
 
             using var output = new MemoryStream();
-            await image.SaveAsWebpAsync(output, new WebpEncoder
-            {
-                Quality = item.Quality,
-                Method = WebpEncodingMethod.Level4
-            });
-
+            await image.SaveAsWebpAsync(output, CreateEncoder(item.Quality));
             return output.ToArray();
         });
 
         return await Task.WhenAll(tasks);
     }
-    
+
     public async Task<byte[][]> CreateThumbnailBatchAsync(IEnumerable<byte[]> images)
     {
         var mask = new EllipsePolygon(200, 200, 200);
@@ -160,29 +143,13 @@ public class ImageProcessorImageSharp : IImageProcessorImageSharp
                 (image.Height - size) / 2,
                 size, size);
 
-            image.Mutate(ctx =>
-            {
-                ctx.Crop(cropRectangle)
-                    .Resize(new ResizeOptions
-                    {
-                        Size = new Size(400, 400),
-                        Mode = ResizeMode.Crop,
-                        Sampler = KnownResamplers.Lanczos3
-                    });
-                ctx.SetGraphicsOptions(new GraphicsOptions
-                {
-                    Antialias = true,
-                    AlphaCompositionMode = PixelAlphaCompositionMode.DestIn
-                });
-                ctx.Fill(Color.White, mask);
-            });
+            image.Mutate(ctx => ctx
+                .CropToThumbnail(cropRectangle)
+                .ApplyRoundedCorners(mask)
+            );
 
             using var output = new MemoryStream();
-            await image.SaveAsWebpAsync(output, new WebpEncoder
-            {
-                Quality = 80,
-                Method = WebpEncodingMethod.Level4
-            });
+            await image.SaveAsWebpAsync(output, CreateEncoder());
 
             return output.ToArray();
         });
