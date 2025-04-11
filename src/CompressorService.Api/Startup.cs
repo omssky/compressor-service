@@ -10,7 +10,7 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddTransient<IImageProcessorImageSharp, ImageProcessorImageSharp>();
-        
+
         services
             .AddGrpc()
             .AddJsonTranscoding();
@@ -19,13 +19,31 @@ public class Startup
         services.AddGrpcSwagger();
         services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1", new OpenApiInfo 
-            { 
-                Title = "CompressorService API", 
+            c.SwaggerDoc("http", new OpenApiInfo
+            {
+                Title = "HTTP API",
                 Version = "v1",
-                Description = "API для обработки изображений"
+                Description = "HTTP endpoints for image processing"
             });
+            c.SwaggerDoc("grpc", new OpenApiInfo
+            {
+                Title = "gRPC API",
+                Version = "v1",
+                Description = "gRPC endpoints for image processing"
+            });
+            c.DocInclusionPredicate((docName, apiDesc) =>
+            {
+                return docName switch
+                {
+                    "http" => apiDesc.GroupName == "http",
+                    "grpc" => apiDesc.GroupName == "grpc",
+                    _ => false
+                };
+            });
+            c.OperationFilter<SwaggerFileOperationFilter>();
         });
+        services.AddControllers();
+
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -35,13 +53,16 @@ public class Startup
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "CompressorService API v1");
+                c.SwaggerEndpoint("/swagger/http/swagger.json", "HTTP API");
+                c.SwaggerEndpoint("/swagger/grpc/swagger.json", "gRPC API");
                 c.RoutePrefix = "swagger";
             });
+
         }
         app.UseRouting();
         app.UseEndpoints(endpoints =>
         {
+            endpoints.MapControllers();
             endpoints.MapGrpcService<ImageProcessingService>();
             if (env.IsDevelopment())
             {
