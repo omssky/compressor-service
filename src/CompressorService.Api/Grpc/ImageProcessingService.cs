@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CompressorService.Api.Grpc;
 
 [ApiExplorerSettings(GroupName = "grpc")]
-public class ImageProcessingService(IWebpImageProcessor webpImageProcessor) 
+public class ImageProcessingService(IWebpImageProcessor webpImageProcessor)
     : Protos.ImageProcessingService.ImageProcessingServiceBase
 {
     public override async Task<ProcessedImageResponse> OptimizeImage(OptimizeImageRequest request, ServerCallContext context)
@@ -86,7 +86,7 @@ public class ImageProcessingService(IWebpImageProcessor webpImageProcessor)
         var response = new BatchProcessedImageResponse();
         response.Images.AddRange(results.Select(r => new Image
         {
-            ImageData = ByteString.CopyFrom(r), 
+            ImageData = ByteString.CopyFrom(r),
             Type = FileType.TypeWebp
         }));
 

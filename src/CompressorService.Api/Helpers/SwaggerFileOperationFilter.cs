@@ -1,7 +1,7 @@
 ﻿using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace CompressorService.Api;
+namespace CompressorService.Api.Helpers;
 
 // ReSharper disable once ClassNeverInstantiated.Global
 public class SwaggerFileOperationFilter : IOperationFilter

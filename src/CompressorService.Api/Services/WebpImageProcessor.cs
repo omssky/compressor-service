@@ -1,4 +1,4 @@
-﻿using CompressorService.Api.Extensions;
+﻿using CompressorService.Api.Helpers;
 using CompressorService.Api.Options;
 using CompressorService.Api.Services.Interfaces;
 using Microsoft.Extensions.Options;
@@ -86,7 +86,7 @@ public class WebpImageProcessor(IOptionsMonitor<WebpEncoderOptions> encoderOptio
 
         return output.ToArray();
     }
-
+    // TODO CancellationToken ВЕЗДЕ
     public async Task<byte[][]> OptimizeBatchAsync(IEnumerable<byte[]> images)
     {
         var tasks = images.Select(async imageData =>

@@ -1,9 +1,10 @@
-﻿using CompressorService.Api.Grpc;
+﻿using CompressorService.Api.Cache;
+using CompressorService.Api.Grpc;
+using CompressorService.Api.Helpers;
 using CompressorService.Api.Options;
 using CompressorService.Api.Services;
 using CompressorService.Api.Services.Interfaces;
 using Microsoft.OpenApi.Models;
-using SixLabors.ImageSharp;
 
 namespace CompressorService.Api;
 
@@ -11,43 +12,51 @@ public class Startup(IConfiguration configuration)
 {
     public void ConfigureServices(IServiceCollection services)
     {
-        services.Configure<WebpEncoderOptions>(configuration.GetSection(nameof(WebpEncoderOptions)));
-        
-        services.AddTransient<IWebpImageProcessor, WebpImageProcessor>();
+        services
+            .Configure<WebpEncoderOptions>(configuration.GetSection(nameof(WebpEncoderOptions)))
+            .Configure<CacheOptions>(configuration.GetSection(nameof(CacheOptions)));
+
+        services
+            .AddTransient<IWebpImageProcessor, WebpImageProcessor>()
+            .Decorate<IWebpImageProcessor, CachedWebpImageProcessor>();
+
+        services.AddMemoryCache();
 
         services
             .AddGrpc()
             .AddJsonTranscoding();
-        services.AddGrpcReflection();
+        services
+            .AddGrpcReflection();
 
-        services.AddGrpcSwagger();
-        services.AddSwaggerGen(c =>
-        {
-            c.SwaggerDoc("http", new OpenApiInfo
+        services
+            .AddGrpcSwagger()
+            .AddSwaggerGen(c =>
             {
-                Title = "HTTP API",
-                Version = "v1",
-                Description = "HTTP endpoints for image processing"
-            });
-            c.SwaggerDoc("grpc", new OpenApiInfo
-            {
-                Title = "gRPC API",
-                Version = "v1",
-                Description = "gRPC endpoints for image processing"
-            });
-            c.DocInclusionPredicate((docName, apiDesc) =>
-            {
-                return docName switch
+                c.SwaggerDoc("http", new OpenApiInfo
                 {
-                    "http" => apiDesc.GroupName == "http",
-                    "grpc" => apiDesc.GroupName == "grpc",
-                    _ => false
-                };
+                    Title = "HTTP API",
+                    Version = "v1",
+                    Description = "HTTP endpoints for image processing"
+                });
+                c.SwaggerDoc("grpc", new OpenApiInfo
+                {
+                    Title = "gRPC API",
+                    Version = "v1",
+                    Description = "gRPC endpoints for image processing"
+                });
+                c.DocInclusionPredicate((docName, apiDesc) =>
+                {
+                    return docName switch
+                    {
+                        "http" => apiDesc.GroupName == "http",
+                        "grpc" => apiDesc.GroupName == "grpc",
+                        _ => false
+                    };
+                });
+                c.OperationFilter<SwaggerFileOperationFilter>();
             });
-            c.OperationFilter<SwaggerFileOperationFilter>();
-        });
+        
         services.AddControllers();
-
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -61,7 +70,6 @@ public class Startup(IConfiguration configuration)
                 c.SwaggerEndpoint("/swagger/grpc/swagger.json", "gRPC API");
                 c.RoutePrefix = "swagger";
             });
-
         }
         app.UseRouting();
         app.UseEndpoints(endpoints =>

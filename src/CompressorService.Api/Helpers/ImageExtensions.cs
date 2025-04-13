@@ -4,7 +4,7 @@ using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
-namespace CompressorService.Api.Extensions;
+namespace CompressorService.Api.Helpers;
 
 public static class ImageExtensions
 {
