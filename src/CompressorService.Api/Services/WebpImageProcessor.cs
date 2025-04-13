@@ -31,21 +31,21 @@ public class WebpImageProcessor(IOptionsMonitor<WebpEncoderOptions> encoderOptio
         };
     }
 
-    public async Task<byte[]> OptimizeAsync(byte[] imageData)
+    public async Task<byte[]> OptimizeAsync(byte[] imageData, CancellationToken cancellationToken)
     {
         using var input = new MemoryStream(imageData);
-        using var image = await Image.LoadAsync<Rgba32>(input);
+        using var image = await Image.LoadAsync<Rgba32>(input, cancellationToken);
 
         using var output = new MemoryStream();
-        await image.SaveAsWebpAsync(output, CreateEncoder(84));
+        await image.SaveAsWebpAsync(output, CreateEncoder(84), cancellationToken);
 
         return output.ToArray();
     }
 
-    public async Task<byte[]> CompressAsync(byte[] imageData, int quality, int width, int height)
+    public async Task<byte[]> CompressAsync(byte[] imageData, int quality, int width, int height, CancellationToken cancellationToken)
     {
         using var input = new MemoryStream(imageData);
-        using var image = await Image.LoadAsync<Rgba32>(input);
+        using var image = await Image.LoadAsync<Rgba32>(input, cancellationToken);
 
         if (width > 0 && height > 0)
         {
@@ -57,15 +57,15 @@ public class WebpImageProcessor(IOptionsMonitor<WebpEncoderOptions> encoderOptio
         }
 
         using var output = new MemoryStream();
-        await image.SaveAsWebpAsync(output, CreateEncoder(quality));
+        await image.SaveAsWebpAsync(output, CreateEncoder(quality), cancellationToken: cancellationToken);
 
         return output.ToArray();
     }
 
-    public async Task<byte[]> CreateThumbnailAsync(byte[] imageData)
+    public async Task<byte[]> CreateThumbnailAsync(byte[] imageData, CancellationToken cancellationToken)
     {
         using var inputStream = new MemoryStream(imageData);
-        using var image = await Image.LoadAsync<Rgba32>(inputStream);
+        using var image = await Image.LoadAsync<Rgba32>(inputStream, cancellationToken);
 
         var size = Math.Min(image.Width, image.Height);
         var cropRectangle = new Rectangle(
@@ -82,34 +82,33 @@ public class WebpImageProcessor(IOptionsMonitor<WebpEncoderOptions> encoderOptio
         );
 
         using var output = new MemoryStream();
-        await image.SaveAsWebpAsync(output, CreateEncoder(84));
+        await image.SaveAsWebpAsync(output, CreateEncoder(84), cancellationToken);
 
         return output.ToArray();
     }
-    // TODO CancellationToken ВЕЗДЕ
-    public async Task<byte[][]> OptimizeBatchAsync(IEnumerable<byte[]> images)
+
+    public async Task<byte[][]> OptimizeBatchAsync(IEnumerable<byte[]> images, CancellationToken cancellationToken)
     {
         var tasks = images.Select(async imageData =>
         {
             using var input = new MemoryStream(imageData);
-            using var image = await Image.LoadAsync<Rgba32>(input);
+            using var image = await Image.LoadAsync<Rgba32>(input, cancellationToken);
 
             using var output = new MemoryStream();
-            await image.SaveAsWebpAsync(output, CreateEncoder(84));
+            await image.SaveAsWebpAsync(output, CreateEncoder(84), cancellationToken);
 
             return output.ToArray();
         });
 
         return await Task.WhenAll(tasks);
     }
-
-
-    public async Task<byte[][]> CompressBatchAsync(IEnumerable<(byte[] ImageData, int Quality, int Width, int Height)> images)
+    
+    public async Task<byte[][]> CompressBatchAsync(IEnumerable<(byte[] ImageData, int Quality, int Width, int Height)> images, CancellationToken cancellationToken)
     {
         var tasks = images.Select(async item =>
         {
             using var input = new MemoryStream(item.ImageData);
-            using var image = await Image.LoadAsync<Rgba32>(input);
+            using var image = await Image.LoadAsync<Rgba32>(input, cancellationToken);
 
             if (item is { Width: > 0, Height: > 0 })
             {
@@ -121,21 +120,21 @@ public class WebpImageProcessor(IOptionsMonitor<WebpEncoderOptions> encoderOptio
             }
 
             using var output = new MemoryStream();
-            await image.SaveAsWebpAsync(output, CreateEncoder(item.Quality));
+            await image.SaveAsWebpAsync(output, CreateEncoder(item.Quality), cancellationToken);
             return output.ToArray();
         });
 
         return await Task.WhenAll(tasks);
     }
 
-    public async Task<byte[][]> CreateThumbnailBatchAsync(IEnumerable<byte[]> images)
+    public async Task<byte[][]> CreateThumbnailBatchAsync(IEnumerable<byte[]> images, CancellationToken cancellationToken)
     {
         var mask = new EllipsePolygon(200, 200, 200);
 
         var tasks = images.Select(async imageData =>
         {
             using var input = new MemoryStream(imageData);
-            using var image = await Image.LoadAsync<Rgba32>(input);
+            using var image = await Image.LoadAsync<Rgba32>(input, cancellationToken);
 
             var size = Math.Min(image.Width, image.Height);
             var cropRectangle = new Rectangle(
@@ -149,7 +148,7 @@ public class WebpImageProcessor(IOptionsMonitor<WebpEncoderOptions> encoderOptio
             );
 
             using var output = new MemoryStream();
-            await image.SaveAsWebpAsync(output, CreateEncoder());
+            await image.SaveAsWebpAsync(output, CreateEncoder(), cancellationToken);
 
             return output.ToArray();
         });

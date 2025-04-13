@@ -15,45 +15,52 @@ public class CachedWebpImageProcessor(
     ILogger<CachedWebpImageProcessor> logger)
     : IWebpImageProcessor
 {
-    public async Task<byte[]> OptimizeAsync(byte[] imageData) =>
+    public async Task<byte[]> OptimizeAsync(byte[] imageData, CancellationToken cancellationToken) =>
         await GetOrAddAsync(
             GenerateCacheKey(nameof(OptimizeAsync), "", imageData),
-            () => innerProcessor.OptimizeAsync(imageData)
+            () => innerProcessor.OptimizeAsync(imageData, cancellationToken)
         );
 
-    public async Task<byte[]> CompressAsync(byte[] imageData, int quality, int width, int height) =>
+    public async Task<byte[]> CompressAsync(
+        byte[] imageData, int quality, int width, int height,
+        CancellationToken cancellationToken) =>
         await GetOrAddAsync(
             GenerateCacheKey(nameof(CompressAsync), $"quality={quality},width={width},height={height}", imageData),
-            () => innerProcessor.CompressAsync(imageData, quality, width, height)
+            () => innerProcessor.CompressAsync(imageData, quality, width, height, cancellationToken)
         );
 
-    public async Task<byte[]> CreateThumbnailAsync(byte[] imageData) =>
+    public async Task<byte[]> CreateThumbnailAsync(byte[] imageData, CancellationToken cancellationToken) =>
         await GetOrAddAsync(
             GenerateCacheKey(nameof(CreateThumbnailAsync), "", imageData),
-            () => innerProcessor.CreateThumbnailAsync(imageData)
+            () => innerProcessor.CreateThumbnailAsync(imageData, cancellationToken)
         );
 
-    public async Task<byte[][]> OptimizeBatchAsync(IEnumerable<byte[]> images) =>
+    public async Task<byte[][]> OptimizeBatchAsync(IEnumerable<byte[]> images, CancellationToken cancellationToken) =>
         await GetOrAddBatchAsync(
             images,
             img => GenerateCacheKey(nameof(OptimizeAsync), "", img),
-            innerProcessor.OptimizeBatchAsync
+            innerProcessor.OptimizeBatchAsync,
+            cancellationToken
         );
 
     public async Task<byte[][]> CompressBatchAsync(
-        IEnumerable<(byte[] ImageData, int Quality, int Width, int Height)> images) =>
+        IEnumerable<(byte[] ImageData, int Quality, int Width, int Height)> images,
+        CancellationToken cancellationToken) =>
         await GetOrAddBatchAsync(
             images,
             item => GenerateCacheKey(nameof(CompressAsync),
                 $"quality={item.Quality},width={item.Width},height={item.Height}", item.ImageData),
-            innerProcessor.CompressBatchAsync
+            innerProcessor.CompressBatchAsync,
+            cancellationToken
         );
 
-    public async Task<byte[][]> CreateThumbnailBatchAsync(IEnumerable<byte[]> images) =>
+    public async Task<byte[][]> CreateThumbnailBatchAsync(IEnumerable<byte[]> images,
+        CancellationToken cancellationToken) =>
         await GetOrAddBatchAsync(
             images,
             img => GenerateCacheKey(nameof(CreateThumbnailAsync), "", img),
-            innerProcessor.CreateThumbnailBatchAsync
+            innerProcessor.CreateThumbnailBatchAsync,
+            cancellationToken
         );
 
     private string GenerateCacheKey(string methodName, string parameters, byte[] imageData) =>
@@ -63,7 +70,7 @@ public class CachedWebpImageProcessor(
     {
         if (!cacheOptions.CurrentValue.IsEnabled)
             return await processorFunc();
-        
+
         if (cache.TryGetValue(cacheKey, out TResult? cachedResult) && cachedResult is not null)
         {
             logger.LogDebug("Cache hit for key {CacheKey}", cacheKey);
@@ -83,11 +90,12 @@ public class CachedWebpImageProcessor(
     private async Task<TResult[]> GetOrAddBatchAsync<TInput, TResult>(
         IEnumerable<TInput> items,
         Func<TInput, string> cacheKeyFactory,
-        Func<TInput[], Task<TResult[]>> processorFunc)
+        Func<TInput[], CancellationToken, Task<TResult[]>> processorFunc,
+        CancellationToken cancellationToken)
     {
         if (!cacheOptions.CurrentValue.IsEnabled)
-            return await processorFunc(items.ToArray());
-        
+            return await processorFunc(items.ToArray(), cancellationToken);
+
         var itemsList = items.ToList();
 
         var groupedByKeys = itemsList
@@ -117,7 +125,7 @@ public class CachedWebpImageProcessor(
         }
 
         var inputsToProcess = missingKeys.Select(key => groupedByKeys[key].First()).ToArray();
-        var processedResults = await processorFunc(inputsToProcess);
+        var processedResults = await processorFunc(inputsToProcess, cancellationToken);
 
         foreach (var (key, result) in missingKeys.Zip(processedResults, (k, r) => (k, r)))
         {
