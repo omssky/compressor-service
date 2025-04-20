@@ -42,25 +42,10 @@
     kubectl top pods -n compressor
     ```
 
-6. **Доступ к Swagger‑UI и gRPC**
-
-    - **NodePort** (использовать напрямую без port‑forward):
-        1. Узнать IP Minikube:
-           ```powershell
-           minikube ip    # например 192.168.49.2
-           ```  
-        2. Открыть в браузере:
-           ```
-           http://192.168.49.2:30080/swagger
-           ```
-        3. gRPC‑адрес для тестов:
-           ```
-           grpc://192.168.49.2:30082
-           ```
-
-    - **Port‑forward** (если NodePort недоступен):
+6. **Пробрасываем порты**
+    - **Port‑forward** (ибо NodePort из под docker не работает):
       ```powershell
-      kubectl port-forward -n compressor svc/compressor-svc 5000:80 5002:5002
+      kubectl port-forward -n compressor svc/compressor-svc 5000:5000 5002:5002
       ```  
       → `http://localhost:5000/swagger`  
       → gRPC на `localhost:5002`
