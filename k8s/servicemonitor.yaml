@@ -1,0 +1,18 @@
+﻿apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: compressor-servicemonitor
+  namespace: compressor
+  labels:
+    release: prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: compressor
+  namespaceSelector:
+    matchNames:
+      - compressor
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 5s
