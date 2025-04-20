@@ -1,0 +1,38 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: compressor-deploy
+  namespace: compressor
+  labels:
+    app: compressor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: compressor
+  template:
+    metadata:
+      labels:
+        app: compressor
+    spec:
+      containers:
+        - name: compressor
+          image: compressor-service:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 5000
+            - name: grpc
+              containerPort: 5002
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: "Development"
+            - name: ASPNETCORE_URLS
+              value: "http://+:5000;http://+:5002"
+          resources:
+            requests:
+              cpu: "4"
+              memory: "4Gi"
+            limits:
+              cpu: "8"
+              memory: "8Gi"

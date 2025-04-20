@@ -2,7 +2,7 @@
 $outputFile = "code_export.txt"
 
 # Массив расширений файлов с кодом (при необходимости расширьте список)
-$extensions = @("*.cs", "*.json")
+$extensions = @("*.cs", "*.json", "*.yaml")
 
 # Список имен папок, которые нужно игнорировать
 $ignoreFolders = @("obj", "bin")
