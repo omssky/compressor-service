@@ -5,6 +5,7 @@ using CompressorService.Api.Options;
 using CompressorService.Api.Services;
 using CompressorService.Api.Services.Interfaces;
 using Microsoft.OpenApi.Models;
+using Prometheus;
 
 namespace CompressorService.Api;
 
@@ -55,7 +56,7 @@ public class Startup(IConfiguration configuration)
                 });
                 c.OperationFilter<SwaggerFileOperationFilter>();
             });
-        
+
         services.AddControllers();
     }
 
@@ -72,10 +73,12 @@ public class Startup(IConfiguration configuration)
             });
         }
         app.UseRouting();
+        app.UseGrpcMetrics();
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
             endpoints.MapGrpcService<ImageProcessingService>();
+            endpoints.MapMetrics();
             if (env.IsDevelopment())
             {
                 endpoints.MapGrpcReflectionService();
