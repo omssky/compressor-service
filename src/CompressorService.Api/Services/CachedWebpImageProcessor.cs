@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+using CompressorService.Api.Metrics;
 using CompressorService.Api.Options;
 using CompressorService.Api.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
@@ -6,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 // ReSharper disable ClassNeverInstantiated.Global
 
-namespace CompressorService.Api.Cache;
+namespace CompressorService.Api.Services;
 
 public class CachedWebpImageProcessor(
     IWebpImageProcessor innerProcessor,
@@ -74,10 +75,12 @@ public class CachedWebpImageProcessor(
         if (cache.TryGetValue(cacheKey, out TResult? cachedResult) && cachedResult is not null)
         {
             logger.LogDebug("Cache hit for key {CacheKey}", cacheKey);
+            CacheMetrics.RegisterCacheHit();
             return cachedResult;
         }
 
         logger.LogDebug("Cache miss for key {CacheKey}", cacheKey);
+        CacheMetrics.RegisterCacheMiss();
         var result = await processorFunc();
 
         cache.Set(cacheKey, result, new MemoryCacheEntryOptions
@@ -108,12 +111,14 @@ public class CachedWebpImageProcessor(
         {
             if (cache.TryGetValue(kvp.Key, out TResult? value) && value is not null)
             {
-                logger.LogDebug("Cache hit for key {CacheKey}", kvp.Key);
                 resultDict[kvp.Key] = value;
+                logger.LogDebug("Cache hit for key {CacheKey}", kvp.Key);
+                CacheMetrics.RegisterCacheHit();
             }
             else
             {
                 logger.LogDebug("Cache miss for key {CacheKey}", kvp.Key);
+                CacheMetrics.RegisterCacheMiss();
             }
         }
 

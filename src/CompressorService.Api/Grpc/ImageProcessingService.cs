@@ -4,6 +4,8 @@ using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.AspNetCore.Mvc;
 
+// ReSharper disable RedundantExplicitTupleComponentName
+
 namespace CompressorService.Api.Grpc;
 
 [ApiExplorerSettings(GroupName = "grpc")]

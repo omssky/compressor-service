@@ -1,5 +1,4 @@
-﻿using CompressorService.Api.Cache;
-using CompressorService.Api.Grpc;
+﻿using CompressorService.Api.Grpc;
 using CompressorService.Api.Helpers;
 using CompressorService.Api.Options;
 using CompressorService.Api.Services;
@@ -18,8 +17,9 @@ public class Startup(IConfiguration configuration)
             .Configure<CacheOptions>(configuration.GetSection(nameof(CacheOptions)));
 
         services
-            .AddTransient<IWebpImageProcessor, WebpImageProcessor>()
-            .Decorate<IWebpImageProcessor, CachedWebpImageProcessor>();
+            .AddSingleton<IWebpImageProcessor, WebpImageProcessor>()
+            .Decorate<IWebpImageProcessor, CachedWebpImageProcessor>()
+            .Decorate<IWebpImageProcessor, MetricsWebpImageProcessor>();
 
         services.AddMemoryCache();
 
