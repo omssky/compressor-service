@@ -1,8 +1,8 @@
 ﻿using CompressorService.Api.Grpc;
 using CompressorService.Api.Helpers;
 using CompressorService.Api.Options;
-using CompressorService.Api.Services;
-using CompressorService.Api.Services.Interfaces;
+using CompressorService.Api.Processing;
+using CompressorService.Api.Processing.Interfaces;
 using Microsoft.OpenApi.Models;
 using Prometheus;
 
@@ -21,7 +21,12 @@ public class Startup(IConfiguration configuration)
             .Decorate<IWebpImageProcessor, CachedWebpImageProcessor>()
             .Decorate<IWebpImageProcessor, MetricsWebpImageProcessor>();
 
-        services.AddMemoryCache();
+        services.AddMemoryCache(options =>
+        {
+            options.SizeLimit = 10_000;
+            options.ExpirationScanFrequency = TimeSpan.FromSeconds(10);
+            options.CompactionPercentage = 0.1;
+        });
 
         services
             .AddGrpc()

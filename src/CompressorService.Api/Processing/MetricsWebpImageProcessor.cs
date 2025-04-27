@@ -1,7 +1,7 @@
 ﻿using CompressorService.Api.Metrics;
-using CompressorService.Api.Services.Interfaces;
+using CompressorService.Api.Processing.Interfaces;
 
-namespace CompressorService.Api.Services;
+namespace CompressorService.Api.Processing;
 
 // ReSharper disable ClassNeverInstantiated.Global
 

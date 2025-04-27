@@ -1,4 +1,4 @@
-﻿namespace CompressorService.Api.Services.Interfaces;
+﻿namespace CompressorService.Api.Processing.Interfaces;
 
 public interface IImageProcessor
 {

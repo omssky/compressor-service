@@ -1,6 +1,6 @@
 ﻿using CompressorService.Api.Helpers;
 using CompressorService.Api.Options;
-using CompressorService.Api.Services.Interfaces;
+using CompressorService.Api.Processing.Interfaces;
 using Microsoft.Extensions.Options;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing;
@@ -8,7 +8,7 @@ using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
-namespace CompressorService.Api.Services;
+namespace CompressorService.Api.Processing;
 
 public class WebpImageProcessor(IOptionsMonitor<WebpEncoderOptions> encoderOptions) : IWebpImageProcessor
 {

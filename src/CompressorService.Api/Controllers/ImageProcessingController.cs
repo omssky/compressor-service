@@ -1,4 +1,4 @@
-﻿using CompressorService.Api.Services.Interfaces;
+﻿using CompressorService.Api.Processing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CompressorService.Api.Controllers;

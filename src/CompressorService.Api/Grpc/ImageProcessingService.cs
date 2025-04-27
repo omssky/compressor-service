@@ -1,5 +1,5 @@
-﻿using CompressorService.Api.Protos;
-using CompressorService.Api.Services.Interfaces;
+﻿using CompressorService.Api.Processing.Interfaces;
+using CompressorService.Api.Protos;
 using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.AspNetCore.Mvc;

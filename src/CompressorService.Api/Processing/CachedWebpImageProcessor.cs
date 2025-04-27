@@ -1,13 +1,13 @@
 ﻿using System.Security.Cryptography;
 using CompressorService.Api.Metrics;
 using CompressorService.Api.Options;
-using CompressorService.Api.Services.Interfaces;
+using CompressorService.Api.Processing.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
 // ReSharper disable ClassNeverInstantiated.Global
 
-namespace CompressorService.Api.Services;
+namespace CompressorService.Api.Processing;
 
 public class CachedWebpImageProcessor(
     IWebpImageProcessor innerProcessor,
@@ -85,6 +85,7 @@ public class CachedWebpImageProcessor(
 
         cache.Set(cacheKey, result, new MemoryCacheEntryOptions
         {
+            Size = 1,
             SlidingExpiration = TimeSpan.FromSeconds(cacheOptions.CurrentValue.ExpirationSeconds)
         });
         return result;
@@ -137,6 +138,7 @@ public class CachedWebpImageProcessor(
             resultDict[key] = result;
             cache.Set(key, result, new MemoryCacheEntryOptions
             {
+                Size = 1,
                 SlidingExpiration = TimeSpan.FromSeconds(cacheOptions.CurrentValue.ExpirationSeconds)
             });
         }
