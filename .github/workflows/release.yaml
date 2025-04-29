@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
@@ -43,19 +46,11 @@ jobs:
           zip -r CompressorService-${{ matrix.rid }}.zip ${{ matrix.rid }}
           mv CompressorService-${{ matrix.rid }}.zip ../
 
-      - name: Create GitHub Release
-        if: ${{ matrix.rid == 'win-x64' }}
+      - name: Publish Release Asset
         uses: softprops/action-gh-release@v2.2.2
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
           body: |
             Автоматически сгенерированный релиз для тега **${{ github.ref_name }}**.
-
-      - name: Upload release assets for ${{ matrix.rid }}
-        uses: softprops/action-gh-release@v2.2.2
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_asset: CompressorService-${{ matrix.rid }}.zip
-          asset_name: CompressorService-${{ matrix.rid }}.zip
-          asset_content_type: application/zip
+          files: CompressorService-${{ matrix.rid }}.zip
