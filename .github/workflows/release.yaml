@@ -1,0 +1,60 @@
+﻿name: Publish Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rid: [win-x64, linux-x64, osx-x64]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '7.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore src/CompressorService.Api/CompressorService.Api.csproj
+
+      - name: Build project
+        run: dotnet build src/CompressorService.Api/CompressorService.Api.csproj --configuration Release --no-restore
+
+      - name: Publish for ${{ matrix.rid }}
+        run: |
+          dotnet publish src/CompressorService.Api/CompressorService.Api.csproj \
+            --configuration Release \
+            --runtime ${{ matrix.rid }} \
+            --self-contained true \
+            --output ./publish/${{ matrix.rid }} \
+            /p:PublishSingleFile=true /p:IncludeAllContentForSelfExtract=true
+
+      - name: Archive binaries for ${{ matrix.rid }}
+        run: |
+          cd publish
+          zip -r CompressorService-${{ matrix.rid }}.zip ${{ matrix.rid }}
+          mv CompressorService-${{ matrix.rid }}.zip ../
+
+      - name: Create GitHub Release
+        if: ${{ matrix.rid == 'win-x64' }}
+        uses: softprops/action-gh-release@v2.2.2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            Автоматически сгенерированный релиз для тега **${{ github.ref_name }}**.
+
+      - name: Upload release assets for ${{ matrix.rid }}
+        uses: softprops/action-gh-release@v2.2.2
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_asset: CompressorService-${{ matrix.rid }}.zip
+          asset_name: CompressorService-${{ matrix.rid }}.zip
+          asset_content_type: application/zip
