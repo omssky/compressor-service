@@ -18,16 +18,19 @@ minikube docker-env | Invoke-Expression
 ```
 
 ### 3. Сборка Docker-образа
-Переход в директорию сервиса и сборка образа:
+Сборка образа в minukube:
 ```powershell
-cd src\CompressorService.Api
-docker build -t compressor-service:dev .
+minikube image build -t compressor-service:dev .\src\CompressorService.Api\
+```
+
+Проверить, что образ загружен
+```powershell
+minikube image ls
 ```
 
 ### 4. Развёртывание в Kubernetes
 Применение манифестов:
 ```powershell
-cd ..\..
 kubectl apply -f k8s/namespace.yaml
 kubectl apply -n compressor -f k8s/deployment.yaml
 kubectl apply -n compressor -f k8s/service.yaml
@@ -60,9 +63,14 @@ kubectl apply -f k8s/servicemonitor.yaml
 
 После этого Prometheus автоматически начнёт собирать метрики с `compressor-svc:5000/metrics`.
 
-## 🔌 Port-forwarding
+## 🔌 Получение доступа в кластер
 
 ### Доступ к сервису
+Поднять ingress
+```powershell
+minikube service compressor-svc -n compressor --url
+```
+Или воспользоваться port-forward
 ```powershell
 kubectl port-forward -n compressor svc/compressor-svc 5000:5000 5002:5002
 ```
@@ -79,3 +87,4 @@ kubectl port-forward -n monitoring svc/prometheus-stack-kube-prom-prometheus 909
 kubectl port-forward -n monitoring svc/prometheus-stack-grafana 3000:80
 ```
 - Интерфейс: http://localhost:3000
+- Подготовленный с основными метриками для нагрузочного можно найти [тут](utils/dashboard.json)
