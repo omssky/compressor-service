@@ -51,7 +51,7 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 helm repo update
 ```
 
-2. Установка в namespace `monitoring`:
+2. Установка в namespace `monitoring` с заданными параметрами:
 ```powershell
 helm install prometheus-stack prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace --set alertmanager.enabled=false --set grafana.enabled=true --set kubernetesServiceMonitors.enabled=true --set nodeExporter.enabled=true --set prometheusOperator.enabled=true --set prometheus.enabled=true --set defaultRules.create=true  
 ```
