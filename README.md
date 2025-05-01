@@ -1,6 +1,6 @@
 ﻿# Тестовый стенд в Minikube
 
-Пошаговая инструкция по развёртыванию и мониторингу сервиса CompressorService в Minikube.
+Пошаговая инструкция по развёртыванию сервиса в Minikube с инструментами мониторинга.
 
 ## 🚀 Запуск стенда
 
@@ -11,32 +11,25 @@ minikube delete
 minikube start --container-runtime=containerd --driver=docker --cpus 10 --memory 10GB --disk-size 50GB
 ```
 
-### 2. Настройка Docker-демона
-Подключение к Docker-демону Minikube:
-```powershell
-minikube docker-env | Invoke-Expression
-```
-
-### 3. Сборка Docker-образа
+### 2. Сборка Docker-образа
 Сборка образа в minukube:
 ```powershell
 minikube image build -t compressor-service:dev .\src\CompressorService.Api\
 ```
 
-Проверить, что образ загружен
+Проверка наличия образа
 ```powershell
 minikube image ls
 ```
 
-### 4. Развёртывание в Kubernetes
+### 3. Развёртывание в Kubernetes
 Применение манифестов:
 ```powershell
 kubectl apply -f k8s/namespace.yaml
 kubectl apply -n compressor -f k8s/deployment.yaml
 kubectl apply -n compressor -f k8s/service.yaml
 ```
-
-### 5. Проверка состояния
+Проверка состояния
 ```powershell
 kubectl get pods -n compressor
 kubectl get svc -n compressor
@@ -60,7 +53,6 @@ helm install prometheus-stack prometheus-community/kube-prometheus-stack --names
 ```powershell
 kubectl apply -f k8s/servicemonitor.yaml
 ```
-
 После этого Prometheus автоматически начнёт собирать метрики с `compressor-svc:5000/metrics`.
 
 ## 🔌 Получение доступа в кластер
@@ -87,4 +79,4 @@ kubectl port-forward -n monitoring svc/prometheus-stack-kube-prom-prometheus 909
 kubectl port-forward -n monitoring svc/prometheus-stack-grafana 3000:80
 ```
 - Интерфейс: http://localhost:3000
-- Подготовленный с основными метриками для нагрузочного можно найти [тут](utils/dashboard.json)
+- Подготовленный дашборд с основными метриками для нагрузочного можно найти [тут](utils/dashboard.json)
