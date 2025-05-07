@@ -37,7 +37,7 @@ public class WebpImageProcessor(IOptionsMonitor<WebpEncoderOptions> encoderOptio
         using var image = await Image.LoadAsync<Rgba32>(input, cancellationToken);
 
         using var output = new MemoryStream();
-        await image.SaveAsWebpAsync(output, CreateEncoder(84), cancellationToken);
+        await image.SaveAsWebpAsync(output, CreateEncoder(), cancellationToken);
 
         return output.ToArray();
     }
@@ -82,7 +82,7 @@ public class WebpImageProcessor(IOptionsMonitor<WebpEncoderOptions> encoderOptio
         );
 
         using var output = new MemoryStream();
-        await image.SaveAsWebpAsync(output, CreateEncoder(84), cancellationToken);
+        await image.SaveAsWebpAsync(output, CreateEncoder(), cancellationToken);
 
         return output.ToArray();
     }
@@ -95,7 +95,7 @@ public class WebpImageProcessor(IOptionsMonitor<WebpEncoderOptions> encoderOptio
             using var image = await Image.LoadAsync<Rgba32>(input, cancellationToken);
 
             using var output = new MemoryStream();
-            await image.SaveAsWebpAsync(output, CreateEncoder(84), cancellationToken);
+            await image.SaveAsWebpAsync(output, CreateEncoder(), cancellationToken);
 
             return output.ToArray();
         });

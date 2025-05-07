@@ -5,7 +5,7 @@ $outputFile = "code_export.txt"
 $extensions = @("*.cs", "*.json", "*.yaml")
 
 # Список имен папок, которые нужно игнорировать
-$ignoreFolders = @("obj", "bin")
+$ignoreFolders = @("obj", "bin", "utils")
 
 # Если итоговый файл уже существует – удаляем его
 if (Test-Path $outputFile) {
